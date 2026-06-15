@@ -445,6 +445,38 @@ td{padding:0;border-bottom:1px solid var(--border);color:var(--text1);vertical-a
   .cv-tabs .ct span{display:none}
   .topbar .brand span{display:none}
 }
+
+/* ══ ADD CLIENT ══ */
+.icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px}
+.icon-opt{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;background:var(--bg3);color:var(--text2);transition:all .15s}
+.icon-opt:hover{background:var(--bg4);color:var(--text1)}
+.icon-opt.selected{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.color-grid{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .15s}
+.color-opt.selected{border-color:#fff;transform:scale(1.2)}
+.cc-manage{position:absolute;top:12px;left:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:12px;transition:all .15s;z-index:2}
+.cc-manage:hover{background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,.3)}
+.add-client-card{background:var(--bg2);border:2px dashed var(--border2);border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:180px;color:var(--text3)}
+.add-client-card:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.add-client-card i{font-size:32px}
+.add-client-card span{font-size:13px;font-weight:600}
+
+/* ══ PDF MODAL ══ */
+.pdf-period-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pdf-pb{padding:7px 15px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2);font-family:var(--font);transition:all .15s}
+.pdf-pb:hover{background:var(--bg4);color:var(--text1)}
+.pdf-pb.on{background:var(--blue-dim);color:var(--blue);border-color:rgba(91,141,238,.4)}
+.pdf-type-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pdf-tb{padding:5px 12px;border:1px solid var(--border2);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);font-family:var(--font);transition:all .15s}
+.pdf-tb:hover{background:var(--bg3);color:var(--text1)}
+.pdf-tb.on{background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,.3)}
+.pdf-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:12px;color:var(--text2);margin-top:10px;line-height:1.9;max-height:160px;overflow-y:auto}
+
+/* ══ SAFETY double-confirm ══ */
+.danger-confirm-box{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);border-radius:var(--r-sm);padding:12px;margin-top:12px;display:none}
+.danger-confirm-box label{font-size:11px;color:var(--red);font-weight:700;display:block;margin-bottom:6px}
+.danger-confirm-box input{width:100%;padding:8px 10px;border:1px solid rgba(248,113,113,.4);border-radius:var(--r-sm);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px}
+.danger-confirm-box input:focus{outline:none;border-color:var(--red)}
 </style>
 </head>
 <body>
@@ -504,9 +536,13 @@ td{padding:0;border-bottom:1px solid var(--border);color:var(--text1);vertical-a
   <!-- ══ DASHBOARD VIEW ══ -->
   <div id="dashboard-view">
     <div class="dash-wrap">
-      <div class="dash-title">لوحة التحكم الرئيسية</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="dash-title">لوحة التحكم الرئيسية</div>
+        <button class="btn b-blue b-sm" onclick="openAddClient()">
+          <i class="ti ti-user-plus"></i> إضافة عميل
+        </button>
+      </div>
       <div class="dash-sub" id="dash-date"></div>
-
       <div class="clients-grid" id="clients-grid"></div>
     </div>
   </div>
@@ -525,6 +561,8 @@ td{padding:0;border-bottom:1px solid var(--border);color:var(--text1);vertical-a
         <button class="ct" onclick="cvGo('cv-entry',this)"><i class="ti ti-plus"></i><span> عملية</span></button>
         <button class="ct" onclick="cvGo('cv-confirm',this)"><i class="ti ti-circle-check"></i><span> تأكيد</span><span class="cnt" id="cv-pcnt"></span></button>
         <button class="ct" onclick="cvGo('cv-log',this)"><i class="ti ti-report"></i><span> كشف</span></button>
+        <button class="ct" onclick="openPdfModal()" title="كشف PDF"><i class="ti ti-file-type-pdf"></i><span> PDF</span></button>
+        <button class="ct" onclick="openCarryModal()" title="الرصيد المدور"><i class="ti ti-wallet"></i><span> مدور</span></button>
       </div>
     </div>
 
@@ -802,6 +840,108 @@ td{padding:0;border-bottom:1px solid var(--border);color:var(--text1);vertical-a
   </div>
 </div>
 
+<!-- ══ ADD CLIENT MODAL ══ -->
+<div class="modal-overlay" id="modal-add-client">
+  <div class="modal" style="max-width:560px;width:96%">
+    <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--green)"></i> إضافة عميل جديد</div>
+    <div class="fg fg2" style="margin-bottom:12px">
+      <div class="fld"><label>اسم العميل <span style="color:var(--red)">*</span></label><input type="text" id="nc-name" placeholder="مثال: أبو علي"/></div>
+      <div class="fld"><label>الاسم الفرعي / الحساب</label><input type="text" id="nc-subname" placeholder="مثال: حساب أبو علي - 101"/></div>
+    </div>
+    <div class="fld" style="margin-bottom:12px">
+      <label>نوع الإدخال</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <div class="tt ti" id="nc-mode-std" onclick="ncSetMode('standard')" style="font-size:12px;padding:10px">
+          <i class="ti ti-trending-up" style="font-size:16px"></i>دخول / خروج
+        </div>
+        <div class="tt" id="nc-mode-ll" onclick="ncSetMode('lana_lahu')" style="font-size:12px;padding:10px">
+          <i class="ti ti-arrows-exchange" style="font-size:16px"></i>لنا / له
+        </div>
+      </div>
+    </div>
+    <div class="fld" style="margin-bottom:12px">
+      <label>الأيقونة</label>
+      <div class="icon-grid" id="nc-icon-grid"></div>
+    </div>
+    <div class="fld" style="margin-bottom:16px">
+      <label>لون البطاقة</label>
+      <div class="color-grid" id="nc-color-grid"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn b-green" onclick="saveNewClient()"><i class="ti ti-check"></i> إضافة العميل</button>
+      <button class="btn b-ghost" onclick="closeModal('modal-add-client')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT CLIENT MODAL ══ -->
+<div class="modal-overlay" id="modal-edit-client">
+  <div class="modal" style="max-width:480px;width:96%">
+    <div class="modal-title"><i class="ti ti-settings" style="color:var(--blue)"></i> إعدادات العميل</div>
+    <div class="fg fg2" style="margin-bottom:12px">
+      <div class="fld"><label>اسم العميل</label><input type="text" id="ec-name"/></div>
+      <div class="fld"><label>الاسم الفرعي</label><input type="text" id="ec-subname"/></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn b-blue" onclick="saveEditClient()"><i class="ti ti-device-floppy"></i> حفظ</button>
+      <button class="btn b-ghost" onclick="closeModal('modal-edit-client')">إلغاء</button>
+      <button class="btn b-ghost" onclick="askDeleteClient()" style="margin-right:auto;color:var(--red);border-color:rgba(248,113,113,.3)">
+        <i class="ti ti-trash"></i> حذف العميل
+      </button>
+    </div>
+    <div class="danger-confirm-box" id="dc-client-box">
+      <label>اكتب اسم العميل للتأكيد:</label>
+      <input type="text" id="dc-client-input" placeholder="اكتب الاسم هنا..."/>
+      <div class="modal-btns" style="margin-top:10px">
+        <button class="btn b-red b-sm" onclick="confirmDeleteClient()"><i class="ti ti-trash"></i> حذف نهائي</button>
+        <button class="btn b-ghost b-sm" onclick="document.getElementById('dc-client-box').style.display='none'">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PDF REPORT MODAL ══ -->
+<div class="modal-overlay" id="modal-pdf">
+  <div class="modal" style="max-width:600px;width:96%">
+    <div class="modal-title"><i class="ti ti-file-type-pdf" style="color:var(--red)"></i> كشف حساب PDF</div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">الفترة الزمنية</div>
+    <div class="pdf-period-btns">
+      <button class="pdf-pb on" onclick="setPdfPeriod('today',this)">اليوم</button>
+      <button class="pdf-pb" onclick="setPdfPeriod('week',this)">هذا الأسبوع</button>
+      <button class="pdf-pb" onclick="setPdfPeriod('month',this)">هذا الشهر</button>
+      <button class="pdf-pb" onclick="setPdfPeriod('year',this)">هذا العام</button>
+      <button class="pdf-pb" onclick="setPdfPeriod('all',this)">الكل</button>
+      <button class="pdf-pb" onclick="setPdfPeriod('custom',this)">مخصص</button>
+    </div>
+
+    <div id="pdf-custom-dates" style="display:none;margin-bottom:12px">
+      <div class="date-flt">
+        <span style="font-size:11px;color:var(--text3)">من:</span>
+        <input type="date" id="pdf-from" onchange="updatePdfPreview()"/>
+        <span style="font-size:11px;color:var(--text3)">إلى:</span>
+        <input type="date" id="pdf-to" onchange="updatePdfPreview()"/>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">نوع العمليات</div>
+    <div class="pdf-type-btns">
+      <button class="pdf-tb on" onclick="togglePdfType('all',this)">الكل</button>
+      <button class="pdf-tb" onclick="togglePdfType('in',this)">دخول / لنا</button>
+      <button class="pdf-tb" onclick="togglePdfType('out',this)">خروج / له</button>
+      <button class="pdf-tb" onclick="togglePdfType('confirmed',this)">مؤكد فقط</button>
+      <button class="pdf-tb" onclick="togglePdfType('pending',this)">معلق فقط</button>
+    </div>
+
+    <div class="pdf-preview" id="pdf-preview">جارٍ التحضير...</div>
+
+    <div class="modal-btns">
+      <button class="btn b-red" onclick="printPdf()"><i class="ti ti-printer"></i> طباعة / حفظ PDF</button>
+      <button class="btn b-ghost" onclick="closeModal('modal-pdf')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══ USERS ══
 const USERS = [
@@ -809,49 +949,30 @@ const USERS = [
   { username: 'mokhtar', password: 'mokhtar2024', name: 'المختار' }
 ];
 
-// ══ CLIENTS CONFIG ══
-const CLIENTS = [
-  {
-    id: 'wishtowich',
-    name: 'ويش تو ويش',
-    subname: 'ويش برالياس - 302',
-    icon: 'ti-building-store',
-    mode: 'standard', // دخول/خروج
-    colorIdx: 0
-  },
-  {
-    id: 'abuhassan',
-    name: 'أبو حسن المدينة',
-    subname: 'حساب أبو حسن',
-    icon: 'ti-user',
-    mode: 'lana_lahu', // لنا/له
-    colorIdx: 1
-  },
-  {
-    id: 'almalik',
-    name: 'الملك',
-    subname: 'حساب الملك',
-    icon: 'ti-crown',
-    mode: 'lana_lahu',
-    colorIdx: 2
-  },
-  {
-    id: 'jad',
-    name: 'جاد',
-    subname: 'حساب جاد',
-    icon: 'ti-user-circle',
-    mode: 'lana_lahu',
-    colorIdx: 3
-  },
-  {
-    id: 'nagham',
-    name: 'نغم',
-    subname: 'حساب نغم',
-    icon: 'ti-user-heart',
-    mode: 'lana_lahu',
-    colorIdx: 4
-  }
+// ══ CLIENTS CONFIG (dynamic) ══
+const DEFAULT_CLIENTS = [
+  { id:'wishtowich', name:'ويش تو ويش',       subname:'ويش برالياس - 302', icon:'ti-building-store', mode:'standard',   colorIdx:0 },
+  { id:'abuhassan',  name:'أبو حسن المدينة',  subname:'حساب أبو حسن',      icon:'ti-user',           mode:'lana_lahu',  colorIdx:1 },
+  { id:'almalik',    name:'الملك',             subname:'حساب الملك',         icon:'ti-crown',          mode:'lana_lahu',  colorIdx:2 },
+  { id:'jad',        name:'جاد',               subname:'حساب جاد',           icon:'ti-user-circle',    mode:'lana_lahu',  colorIdx:3 },
+  { id:'nagham',     name:'نغم',               subname:'حساب نغم',           icon:'ti-user-heart',     mode:'lana_lahu',  colorIdx:4 }
 ];
+
+function loadClientsConfig(){
+  try{
+    const saved = localStorage.getItem('fin_clients_cfg');
+    if(saved) return JSON.parse(saved);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_CLIENTS));
+}
+function saveClientsConfig(){
+  localStorage.setItem('fin_clients_cfg', JSON.stringify(CLIENTS));
+  if(useFirebase && db){
+    db.ref('mokhtar_finance/__clients__').set(CLIENTS).catch(e=>console.error(e));
+  }
+}
+
+let CLIENTS = loadClientsConfig();
 
 // ══════════════════════════════════════════════
 //  FIREBASE CONFIG — مكتب المختار للصيرفة
@@ -915,6 +1036,13 @@ function useLocalMode(){
 function loadAllFromFirebase(cb){
   db.ref('mokhtar_finance').once('value').then(snap=>{
     const data = snap.val() || {};
+    // Load client configs if saved in Firebase
+    if(data.__clients__ && Array.isArray(data.__clients__)){
+      CLIENTS.length=0;
+      data.__clients__.forEach(c=>CLIENTS.push(c));
+      localStorage.setItem('fin_clients_cfg',JSON.stringify(CLIENTS));
+    }
+    initCache(); // reinit after clients loaded
     CLIENTS.forEach(c=>{
       const cdata = data[c.id] || {};
       const opsObj = cdata.ops || {};
@@ -1089,7 +1217,6 @@ function doLogout(){
 function renderDashboard(){
   const now=new Date();
   document.getElementById('dash-date').textContent=now.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-
   const grid=document.getElementById('clients-grid');
   grid.innerHTML=CLIENTS.map((c,i)=>{
     const ops=getOps(c.id);
@@ -1099,9 +1226,11 @@ function renderDashboard(){
     const tout=ops.filter(o=>o.type==='out').reduce((a,o)=>a+o.amount,0);
     const pend=ops.filter(o=>o.status==='pending').length;
     const balColor=bal>=0?'var(--green)':'var(--red)';
-
     return `
     <div class="client-card c${c.colorIdx}" onclick="openClient('${c.id}')">
+      <div class="cc-manage" onclick="event.stopPropagation();openEditClient('${c.id}')" title="إعدادات العميل">
+        <i class="ti ti-dots"></i>
+      </div>
       <div class="cc-header">
         <div>
           <div class="cc-name">${c.name}</div>
@@ -1112,24 +1241,19 @@ function renderDashboard(){
       <div class="cc-label">الرصيد المؤكد</div>
       <div class="cc-balance" style="color:${balColor}">${bal>=0?'':'-'}$${fmtN(Math.abs(bal))}</div>
       <div class="cc-stats">
-        <div class="cc-stat">
-          <div class="cc-stat-lbl">دخول</div>
-          <div class="cc-stat-val" style="color:var(--green)">${fmt(tin)}</div>
-        </div>
-        <div class="cc-stat">
-          <div class="cc-stat-lbl">خروج</div>
-          <div class="cc-stat-val" style="color:var(--red)">${fmt(tout)}</div>
-        </div>
-        <div class="cc-stat">
-          <div class="cc-stat-lbl">مدور</div>
-          <div class="cc-stat-val" style="color:var(--blue)">${fmt(carry)}</div>
-        </div>
+        <div class="cc-stat"><div class="cc-stat-lbl">دخول</div><div class="cc-stat-val" style="color:var(--green)">${fmt(tin)}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">خروج</div><div class="cc-stat-val" style="color:var(--red)">${fmt(tout)}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">مدور</div><div class="cc-stat-val" style="color:var(--blue)">${fmt(carry)}</div></div>
       </div>
       ${pend>0?`<div class="cc-pending"><i class="ti ti-clock"></i> ${pend} عملية معلقة</div>`:''}
       <div style="height:36px"></div>
       <div class="cc-open"><i class="ti ti-arrow-left"></i> فتح الحساب</div>
     </div>`;
-  }).join('');
+  }).join('')+`
+    <div class="add-client-card" onclick="openAddClient()">
+      <i class="ti ti-user-plus"></i>
+      <span>إضافة عميل جديد</span>
+    </div>`;
 }
 
 // ══ CLIENT VIEW ══
@@ -1684,6 +1808,305 @@ function showConfirmModal(title, body, onOk, isDanger=false){
   okBtn.className='btn '+(isDanger?'b-red':'b-blue');
   okBtn.onclick=()=>{ closeModal('modal-confirm'); onOk(); };
   openModal('modal-confirm');
+}
+
+// ══ ADD CLIENT ══
+const NC_ICONS = ['ti-user','ti-user-circle','ti-user-heart','ti-user-star','ti-building','ti-building-store','ti-building-bank','ti-crown','ti-briefcase','ti-phone','ti-car','ti-home','ti-ship','ti-plane','ti-star','ti-heart'];
+const NC_COLORS = [
+  {label:'أزرق',    cls:'c0', grad:'linear-gradient(135deg,#5b8dee,#7c6ff7)'},
+  {label:'أخضر',   cls:'c1', grad:'linear-gradient(135deg,#34d399,#059669)'},
+  {label:'ذهبي',   cls:'c2', grad:'linear-gradient(135deg,#fbbf24,#d97706)'},
+  {label:'بنفسجي', cls:'c3', grad:'linear-gradient(135deg,#a78bfa,#7c3aed)'},
+  {label:'أحمر',   cls:'c4', grad:'linear-gradient(135deg,#f87171,#dc2626)'},
+  {label:'وردي',   cls:'c5', grad:'linear-gradient(135deg,#f472b6,#db2777)'},
+  {label:'سماوي',  cls:'c6', grad:'linear-gradient(135deg,#38bdf8,#0284c7)'},
+  {label:'برتقالي',cls:'c7', grad:'linear-gradient(135deg,#fb923c,#ea580c)'},
+];
+// Extend CSS for extra colors
+const extraColorCSS = document.createElement('style');
+extraColorCSS.textContent=`
+.client-card.c5::before{background:linear-gradient(180deg,#f472b6,#db2777)}
+.client-card.c6::before{background:linear-gradient(180deg,#38bdf8,#0284c7)}
+.client-card.c7::before{background:linear-gradient(180deg,#fb923c,#ea580c)}
+.c5 .cc-icon{background:rgba(244,114,182,.12);color:#f472b6}
+.c6 .cc-icon{background:rgba(56,189,248,.12);color:#38bdf8}
+.c7 .cc-icon{background:rgba(251,146,60,.12);color:#fb923c}`;
+document.head.appendChild(extraColorCSS);
+
+let ncMode='lana_lahu', ncIcon='ti-user', ncColorIdx=1;
+
+function openAddClient(){
+  ncMode='lana_lahu'; ncIcon='ti-user'; ncColorIdx=1;
+  document.getElementById('nc-name').value='';
+  document.getElementById('nc-subname').value='';
+  ncSetMode('lana_lahu');
+  // Build icon grid
+  document.getElementById('nc-icon-grid').innerHTML=NC_ICONS.map(ic=>`
+    <div class="icon-opt${ic===ncIcon?' selected':''}" onclick="ncSelectIcon('${ic}')">
+      <i class="ti ${ic}"></i>
+    </div>`).join('');
+  // Build color grid
+  document.getElementById('nc-color-grid').innerHTML=NC_COLORS.map((c,i)=>`
+    <div class="color-opt${i===ncColorIdx?' selected':''}"
+         style="background:${c.grad}"
+         onclick="ncSelectColor(${i})" title="${c.label}"></div>`).join('');
+  openModal('modal-add-client');
+}
+
+function ncSetMode(m){
+  ncMode=m;
+  document.getElementById('nc-mode-std').className='tt'+(m==='standard'?' ti':'');
+  document.getElementById('nc-mode-ll').className='tt'+(m==='lana_lahu'?' ti':'');
+}
+function ncSelectIcon(ic){
+  ncIcon=ic;
+  document.querySelectorAll('#nc-icon-grid .icon-opt').forEach(el=>{
+    el.classList.toggle('selected', el.querySelector('i').classList.contains(ic));
+  });
+}
+function ncSelectColor(idx){
+  ncColorIdx=idx;
+  document.querySelectorAll('#nc-color-grid .color-opt').forEach((el,i)=>{
+    el.classList.toggle('selected',i===idx);
+  });
+}
+
+function saveNewClient(){
+  const name=document.getElementById('nc-name').value.trim();
+  if(!name){ toast('أدخل اسم العميل',false); return; }
+  const subname=document.getElementById('nc-subname').value.trim()||name;
+  // Generate unique id
+  const id='client_'+Date.now();
+  const newClient={ id, name, subname, icon:ncIcon, mode:ncMode, colorIdx:ncColorIdx };
+  CLIENTS.push(newClient);
+  dataCache[id]={ ops:[], carry:null };
+  saveClientsConfig();
+  // If firebase, set up listener for new client
+  if(useFirebase && db){
+    db.ref('mokhtar_finance/'+id+'/ops').on('value', snap=>{
+      const opsObj=snap.val()||{};
+      dataCache[id].ops=Object.values(opsObj).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+      if(currentClientId===id){ cvRenderDash(); upc(); }
+      if(document.getElementById('dashboard-view').style.display!=='none') renderDashboard();
+    });
+  }
+  closeModal('modal-add-client');
+  renderDashboard();
+  toast('✓ تم إضافة العميل: '+name);
+}
+
+// ══ EDIT / DELETE CLIENT ══
+let editingClientId=null;
+function openEditClient(cid){
+  editingClientId=cid;
+  const c=CLIENTS.find(x=>x.id===cid); if(!c)return;
+  document.getElementById('ec-name').value=c.name;
+  document.getElementById('ec-subname').value=c.subname;
+  document.getElementById('dc-client-box').style.display='none';
+  document.getElementById('dc-client-input').value='';
+  openModal('modal-edit-client');
+}
+function saveEditClient(){
+  const c=CLIENTS.find(x=>x.id===editingClientId); if(!c)return;
+  c.name=document.getElementById('ec-name').value.trim()||c.name;
+  c.subname=document.getElementById('ec-subname').value.trim()||c.subname;
+  saveClientsConfig();
+  closeModal('modal-edit-client');
+  renderDashboard();
+  toast('✓ تم تحديث بيانات العميل');
+}
+function askDeleteClient(){
+  document.getElementById('dc-client-box').style.display='block';
+  document.getElementById('dc-client-input').focus();
+}
+function confirmDeleteClient(){
+  const c=CLIENTS.find(x=>x.id===editingClientId); if(!c)return;
+  const typed=document.getElementById('dc-client-input').value.trim();
+  if(typed!==c.name){ toast('الاسم غير مطابق — الحذف ملغي',false); return; }
+  showConfirmModal(
+    '<i class="ti ti-trash"></i> حذف العميل نهائياً',
+    `سيتم حذف <strong>${c.name}</strong> وجميع عملياته (${getOps(c.id).length} عملية). لا يمكن التراجع.`,
+    ()=>{
+      // Remove from Firebase
+      if(useFirebase&&db) db.ref('mokhtar_finance/'+editingClientId).remove().catch(e=>console.error(e));
+      delete dataCache[editingClientId];
+      const idx=CLIENTS.findIndex(x=>x.id===editingClientId);
+      if(idx>-1) CLIENTS.splice(idx,1);
+      saveClientsConfig();
+      closeModal('modal-edit-client');
+      renderDashboard();
+      toast('تم حذف العميل');
+    },true
+  );
+}
+
+// ══ PDF / PRINT ══
+let pdfPeriod='today', pdfType='all';
+
+function openPdfModal(){
+  pdfPeriod='today'; pdfType='all';
+  document.querySelectorAll('.pdf-pb').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.querySelectorAll('.pdf-tb').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.getElementById('pdf-custom-dates').style.display='none';
+  updatePdfPreview();
+  openModal('modal-pdf');
+}
+
+function setPdfPeriod(p, btn){
+  pdfPeriod=p;
+  document.querySelectorAll('.pdf-pb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pdf-custom-dates').style.display=p==='custom'?'flex':'none';
+  updatePdfPreview();
+}
+
+function togglePdfType(t, btn){
+  pdfType=t;
+  document.querySelectorAll('.pdf-tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  updatePdfPreview();
+}
+
+function getPdfDateRange(){
+  const now=new Date();
+  const today=now.toISOString().split('T')[0];
+  if(pdfPeriod==='today') return {from:today, to:today};
+  if(pdfPeriod==='week'){
+    const d=new Date(now); d.setDate(d.getDate()-d.getDay());
+    return {from:d.toISOString().split('T')[0], to:today};
+  }
+  if(pdfPeriod==='month'){
+    return {from:today.slice(0,7)+'-01', to:today};
+  }
+  if(pdfPeriod==='year'){
+    return {from:today.slice(0,4)+'-01-01', to:today};
+  }
+  if(pdfPeriod==='custom'){
+    return {from:document.getElementById('pdf-from').value||'', to:document.getElementById('pdf-to').value||today};
+  }
+  return {from:'', to:''};
+}
+
+function getPdfOps(){
+  const {from,to}=getPdfDateRange();
+  const cid=currentClientId;
+  let list=[...getOps(cid)].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(from) list=list.filter(o=>o.date>=from);
+  if(to)   list=list.filter(o=>o.date<=to);
+  if(pdfType==='in')        list=list.filter(o=>o.type==='in');
+  else if(pdfType==='out')  list=list.filter(o=>o.type==='out');
+  else if(pdfType==='confirmed') list=list.filter(o=>o.status==='confirmed');
+  else if(pdfType==='pending')   list=list.filter(o=>o.status==='pending');
+  return list;
+}
+
+function updatePdfPreview(){
+  const list=getPdfOps();
+  const cid=currentClientId;
+  const client=CLIENTS.find(c=>c.id===cid);
+  const {from,to}=getPdfDateRange();
+  const si=list.filter(o=>o.type==='in').reduce((a,o)=>a+o.amount,0);
+  const so=list.filter(o=>o.type==='out').reduce((a,o)=>a+o.amount,0);
+  const sc=list.filter(o=>o.status==='confirmed'&&o.type==='in').reduce((a,o)=>a+o.amount,0)
+           -list.filter(o=>o.status==='confirmed'&&o.type==='out').reduce((a,o)=>a+o.amount,0);
+  const periodLabel=pdfPeriod==='today'?'اليوم':pdfPeriod==='week'?'هذا الأسبوع':pdfPeriod==='month'?'هذا الشهر':pdfPeriod==='year'?'هذا العام':pdfPeriod==='all'?'جميع الفترات':`${from} إلى ${to}`;
+
+  const el=document.getElementById('pdf-preview');
+  if(!list.length){ el.innerHTML='<span style="color:var(--text3)">لا توجد عمليات في هذه الفترة</span>'; return; }
+  el.innerHTML=`
+    <div style="margin-bottom:8px;font-weight:700;color:var(--text1)">${client.name} — ${periodLabel}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+      <span>📥 دخول: <strong style="color:var(--green)">${fmt(si)}</strong></span>
+      <span>📤 خروج: <strong style="color:var(--red)">${fmt(so)}</strong></span>
+      <span>✅ صافي مؤكد: <strong style="color:var(--blue)">${fmt(sc)}</strong></span>
+      <span>📋 عدد: <strong>${list.length}</strong></span>
+    </div>
+    ${list.slice(0,5).map(o=>`<div style="padding:3px 0;border-bottom:1px solid var(--border);font-size:11px">
+      ${fdt(o.date,o.time)} &nbsp;|&nbsp; 
+      ${client.mode==='lana_lahu'?(o.type==='in'?'لنا':'له'):(o.type==='in'?'دخول':'خروج')} &nbsp;|&nbsp;
+      <strong>${fmt(o.amount)}</strong> &nbsp;|&nbsp;
+      <span style="color:${o.status==='confirmed'?'var(--green)':'var(--amber)'}">${o.status==='confirmed'?'مؤكد':'معلق'}</span>
+      ${o.note?'&nbsp;|&nbsp;'+o.note:''}
+    </div>`).join('')}
+    ${list.length>5?`<div style="color:var(--text3);margin-top:6px;font-size:11px">... و ${list.length-5} عملية أخرى</div>`:''}`;
+}
+
+function printPdf(){
+  const list=getPdfOps();
+  const cid=currentClientId;
+  const client=CLIENTS.find(c=>c.id===cid);
+  const {from,to}=getPdfDateRange();
+  const now=new Date();
+  const si=list.filter(o=>o.type==='in').reduce((a,o)=>a+o.amount,0);
+  const so=list.filter(o=>o.type==='out').reduce((a,o)=>a+o.amount,0);
+  const sc=list.filter(o=>o.status==='confirmed'&&o.type==='in').reduce((a,o)=>a+o.amount,0)
+           -list.filter(o=>o.status==='confirmed'&&o.type==='out').reduce((a,o)=>a+o.amount,0);
+  const bal=getBalance(cid);
+  const periodLabel=pdfPeriod==='today'?'اليوم':pdfPeriod==='week'?'هذا الأسبوع':pdfPeriod==='month'?'هذا الشهر':pdfPeriod==='year'?'هذا العام':pdfPeriod==='all'?'جميع الفترات':`${from} — ${to}`;
+
+  let running=carryV(cid);
+  const rows=list.map(op=>{
+    if(op.type==='in') running+=op.amount; else running-=op.amount;
+    const tl=client.mode==='lana_lahu'?(op.type==='in'?'لنا':'له'):(op.type==='in'?'دخول':'خروج');
+    return `<tr>
+      <td>${fdt(op.date,op.time)}</td>
+      <td>${tl}</td>
+      <td style="font-weight:bold;color:${op.type==='in'?'#059669':'#dc2626'}">${op.type==='in'?'+':'-'}${fmt(op.amount)}</td>
+      <td>${op.phone||'—'}</td>
+      <td style="color:${op.status==='confirmed'?'#2563eb':'#d97706'}">${op.status==='confirmed'?'✅ مؤكد':'⏳ معلق'}</td>
+      <td style="font-size:11px;color:#666">${op.note||'—'}</td>
+      <td style="font-weight:bold;color:${running>=0?'#059669':'#dc2626'}">${fmt(running)}</td>
+    </tr>`;
+  }).join('');
+
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<title>كشف حساب — ${client.name}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;direction:rtl;color:#1a1a2e;background:#fff;padding:20px;font-size:13px}
+  .header{text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #e0e7ff}
+  .header h1{font-size:22px;color:#1e3a8a;margin-bottom:4px}
+  .header h2{font-size:16px;color:#3b5bdb;margin-bottom:8px}
+  .header p{font-size:12px;color:#6b7280}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .sum-box{flex:1;min-width:120px;background:#f0f4ff;border-radius:8px;padding:10px 14px;text-align:center}
+  .sum-box .lbl{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .sum-box .val{font-size:15px;font-weight:700}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px}
+  th{background:#1e3a8a;color:#fff;padding:8px 10px;font-size:11px;text-align:right;font-weight:600}
+  td{padding:7px 10px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right}
+  tr:nth-child(even){background:#f9fafb}
+  tr:hover{background:#eff6ff}
+  .footer{text-align:center;font-size:11px;color:#9ca3af;margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb}
+  @media print{body{padding:10px}.no-print{display:none}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>مكتب المختار للصيرفة</h1>
+  <h2>كشف حساب — ${client.name}</h2>
+  <p>${client.subname} &nbsp;|&nbsp; الفترة: ${periodLabel} &nbsp;|&nbsp; تاريخ الطباعة: ${now.toLocaleDateString('ar-SA')} ${now.toTimeString().slice(0,5)}</p>
+</div>
+<div class="summary">
+  <div class="sum-box"><div class="lbl">إجمالي دخول</div><div class="val" style="color:#059669">${fmt(si)}</div></div>
+  <div class="sum-box"><div class="lbl">إجمالي خروج</div><div class="val" style="color:#dc2626">${fmt(so)}</div></div>
+  <div class="sum-box"><div class="lbl">صافي مؤكد</div><div class="val" style="color:#2563eb">${fmt(sc)}</div></div>
+  <div class="sum-box"><div class="lbl">الرصيد الحالي</div><div class="val" style="color:${bal>=0?'#059669':'#dc2626'}">${fmt(bal)}</div></div>
+  <div class="sum-box"><div class="lbl">عدد العمليات</div><div class="val">${list.length}</div></div>
+</div>
+<table>
+  <thead><tr><th>التاريخ والوقت</th><th>النوع</th><th>المبلغ</th><th>الهاتف</th><th>الحالة</th><th>ملاحظة</th><th>الرصيد المتراكم</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:20px">لا توجد عمليات</td></tr>'}</tbody>
+</table>
+<div class="footer">مكتب المختار للصيرفة — نظام إدارة الحسابات &nbsp;|&nbsp; ${now.toLocaleDateString('ar-SA')}</div>
+<script>setTimeout(()=>window.print(),400);<\/script>
+</body></html>`);
+  w.document.close();
+  closeModal('modal-pdf');
 }
 
 // Close modals on overlay click
